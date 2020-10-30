@@ -12,8 +12,9 @@ include 'hw3Macro.inc'
 
 section '.data' data readable writable
 
-        enterStr db 'This program calculates cosh(x). Enter x', 10, 0
+        enterStr db 'This program calculates cosh(x). Enter x (-700 <= x <= 700)', 10, 0
         numberStr db '%lf', 0
+        debugStr db '%lf', 10, 0
         iterationStr db 'Iteration %d: ', 0
         currentValuesStr db 'current term = %lf, sum = %lf', 10, 0
         resultStr db 'Result: cosh(%lf) = %lf', 10, 0
@@ -59,6 +60,8 @@ section '.code' code readable executable
                 ; nextTerm = term; nextTerm *= x^2;
                 fld [term]
                 fmul [sqrX]
+                ;fstp [nextTerm]
+                ;PrintFloat debugStr, nextTerm
                 ; nextTerm /= factorialCounter++;
                 fidiv [factorialCounter]
                 Inc factorialCounter
@@ -78,7 +81,7 @@ section '.code' code readable executable
                 fld [sum]
                 fmul [epsilon]
                 fld [nextTerm]
-                fcomp
+                fcompp
                 fstsw ax
                 sahf
                 jb outputResult
@@ -88,11 +91,14 @@ section '.code' code readable executable
                 jmp mainLoop
 
         outputResult:
+                ; Выводим результат последней итерации и итоговый результат.
+                invoke printf, iterationStr,[iterationCounter]
+                PrintFloat currentValuesStr, nextTerm, sum
                 PrintFloat resultStr, x, sum
 
         finish:
                 push 0
-                invoke scanf, numberStr, x
+                invoke getch
                 call ExitProcess
 
 
@@ -108,4 +114,5 @@ section '.idata' import data readable
 
         import msvcrt,\
                printf, 'printf',\
-               scanf, 'scanf'
+               scanf, 'scanf',\
+               getch, '_getch'
